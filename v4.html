@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker Modern</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --income: #2ecc71;
+            --expense: #e74c3c;
+            --dark: #2d3436;
+            --light: #f8f9fa;
+            --gray: #636e72;
+            --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0;
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        .navbar-brand i {
+            font-size: 1.8rem;
+        }
+
+        .navbar-menu {
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar-nav {
+            display: flex;
+            list-style: none;
+            gap: 25px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-link {
+            color: var(--dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background: rgba(67, 97, 238, 0.1);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            cursor: pointer;
+        }
+
+        .hamburger span {
+            height: 3px;
+            width: 100%;
+            background-color: var(--dark);
+            border-radius: 3px;
+            transition: var(--transition);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+            transform: rotate(30deg);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .left-panel {
+            padding: 25px;
+            background-color: var(--light);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .right-panel {
+            padding: 25px;
+            background-color: white;
+        }
+
+        .balance-container {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .balance-label {
+            font-size: 1.1rem;
+            color: var(--gray);
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 700;
+            transition: var(--transition);
+        }
+
+        .positive {
+            color: var(--income);
+        }
+
+        .negative {
+            color: var(--expense);
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .summary-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .summary-title {
+            font-size: 0.9rem;
+            color: var(--gray);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .summary-amount {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .income-summary {
+            color: var(--income);
+            border-top: 4px solid var(--income);
+        }
+
+        .expense-summary {
+            color: var(--expense);
+            border-top: 4px solid var(--expense);
+        }
+
+        .form-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        h3 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .radio-option {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .radio-option.selected {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.1);
+        }
+
+        .radio-option i {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+
+        .transaction-list {
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .transaction-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .transaction-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .transaction-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: var(--dark);
+            font-weight: 600;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: var(--primary);
+            border-radius: 3px;
+        }
+
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px;
+            background-color: white;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: var(--transition);
+            animation: fadeIn 0.5s ease;
+            border-left: 5px solid;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .transaction-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .transaction-details {
+            flex-grow: 1;
+        }
+
+        .transaction-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .transaction-category {
+            color: var(--gray);
+            font-size: 0.9rem;
+            display: inline-block;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .transaction-date {
+            color: var(--gray);
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .transaction-amount {
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-right: 15px;
+        }
+
+        .transaction-income {
+            border-left-color: var(--income);
+        }
+
+        .transaction-expense {
+            border-left-color: var(--expense);
+        }
+
+        .transaction-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .delete-btn {
+            background-color: transparent;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger);
+            color: white;
+        }
+
+        .no-transactions {
+            text-align: center;
+            color: var(--gray);
+            padding: 40px 20px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .chart-container {
+            margin-top: 25px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .chart {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .chart-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: var(--light);
+        }
+
+        .chart-bar {
+            width: 30px;
+            background: var(--primary);
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .chart-label {
+            font-size: 0.85rem;
+            color: var(--gray);
+            text-align: center;
+        }
+
+        /* Footer Styles */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            text-align: left;
+        }
+
+        .footer-section {
+            margin-bottom: 20px;
+        }
+
+        .footer-section h3 {
+            color: white;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+            display: inline-block;
+        }
+
+        .footer-section h3::after {
+            display: none;
+        }
+
+        .footer-section p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 10px;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .social-icons a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            transition: var(--transition);
+        }
+
+        .social-icons a:hover {
+            background: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .navbar-nav {
+                position: fixed;
+                top: 70px;
+                left: -100%;
+                background: white;
+                width: 80%;
+                height: calc(100vh - 70px);
+                flex-direction: column;
+                gap: 0;
+                padding: 20px;
+                box-shadow: 5px 0 15px rgba(0, 0, 0, 0.1);
+                transition: var(--transition);
+                z-index: 999;
+            }
+
+            .navbar-nav.active {
+                left: 0;
+            }
+
+            .nav-link {
+                padding: 15px;
+                border-radius: 5px;
+                margin-bottom: 5px;
+                display: block;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .hamburger.active span:nth-child(1) {
+                transform: translateY(9px) rotate(45deg);
+            }
+
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active span:nth-child(3) {
+                transform: translateY(-9px) rotate(-45deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+            }
+            
+            .summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .transaction-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .transaction-actions {
+                align-self: flex-end;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .social-icons {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .balance-amount {
+                font-size: 2rem;
+            }
+            
+            .left-panel, .right-panel {
+                padding: 20px 15px;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .navbar-brand i {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">
+            <i class="fas fa-wallet"></i>
+            <span>ExpenseTracker</span>
+        </a>
+        
+        <div class="navbar-menu">
+            <ul class="navbar-nav">
+                <li><a href="#" class="nav-link">Beranda</a></li>
+                <li><a href="#" class="nav-link">Tentang</a></li>
+                <li><a href="#" class="nav-link">Fitur</a></li>
+                <li><a href="#" class="nav-link">Kontak</a></li>
+            </ul>
+            
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div id="root"></div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Tentang Kami</h3>
+                <p>ExpenseTracker adalah aplikasi modern untuk membantu Anda mengelola keuangan pribadi dengan mudah dan efisien.</p>
+                <div class="social-icons">
+                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#"><i class="fab fa-twitter"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Link Cepat</h3>
+                <ul class="footer-links">
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> Beranda</a></li>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> Tentang</a></li>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> Layanan</a></li>
+                    <li><a href="#"><i class="fas fa-chevron-right"></i> Privasi</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Kontak</h3>
+                <p><i class="fas fa-map-marker-alt"></i> Jakarta, Indonesia</p>
+                <p><i class="fas fa-phone"></i> +62 123 456 789</p>
+                <p><i class="fas fa-envelope"></i> info@expensetracker.com</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2023 ExpenseTracker. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Format angka ke Rupiah
+        const formatRupiah = (angka) => {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(angka);
+        };
+
+        const ExpenseTracker = () => {
+            const [transactions, setTransactions] = useState([]);
+            const [name, setName] = useState('');
+            const [amount, setAmount] = useState('');
+            const [category, setCategory] = useState('');
+            const [type, setType] = useState('income');
+            const [loading, setLoading] = useState(false);
+            
+            // Kategori berdasarkan tipe transaksi
+            const incomeCategories = ['Gaji', 'Bonus', 'Hadiah', 'Investasi', 'Lainnya'];
+            const expenseCategories = ['Makanan', 'Transportasi', 'Hiburan', 'Tagihan', 'Belanja', 'Kesehatan', 'Lainnya'];
+            
+            // Load data dari localStorage saat komponen dimount
+            useEffect(() => {
+                setLoading(true);
+                const savedTransactions = localStorage.getItem('transactions');
+                if (savedTransactions) {
+                    setTransactions(JSON.parse(savedTransactions));
+                }
+                // Simulasikan loading
+                setTimeout(() => setLoading(false), 1000);
+            }, []);
+            
+            // Simpan data ke localStorage setiap kali transactions berubah
+            useEffect(() => {
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+            }, [transactions]);
+            
+            // Hitung saldo, pemasukan, dan pengeluaran
+            const calculateBalance = () => {
+                let income = 0;
+                let expenses = 0;
+                
+                transactions.forEach(transaction => {
+                    if (transaction.type === 'income') {
+                        income += parseInt(transaction.amount);
+                    } else {
+                        expenses += parseInt(transaction.amount);
+                    }
+                });
+                
+                return {
+                    income,
+                    expenses,
+                    balance: income - expenses
+                };
+            };
+            
+            const { income, expenses, balance } = calculateBalance();
+            
+            // Hitung persentase pengeluaran
+            const expensePercentage = income > 0 ? Math.min(100, Math.round((expenses / income) * 100)) : 0;
+            
+            // Data untuk chart
+            const getCategoryData = () => {
+                const data = {};
+                
+                transactions.forEach(transaction => {
+                    if (transaction.type === 'expense') {
+                        if (!data[transaction.category]) {
+                            data[transaction.category] = 0;
+                        }
+                        data[transaction.category] += parseInt(transaction.amount);
+                    }
+                });
+                
+                return data;
+            };
+            
+            const categoryData = getCategoryData();
+            
+            // Tambah transaksi baru
+            const addTransaction = (e) => {
+                e.preventDefault();
+                
+                if (!name || !amount || !category) {
+                    alert('Harap isi semua field!');
+                    return;
+                }
+                
+                if (amount <= 0) {
+                    alert('Jumlah transaksi harus lebih dari 0!');
+                    return;
+                }
+                
+                const newTransaction = {
+                    id: Date.now(),
+                    name,
+                    amount,
+                    category,
+                    type,
+                    date: new Date().toLocaleDateString('id-ID', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    })
+                };
+                
+                setTransactions([...transactions, newTransaction]);
+                setName('');
+                setAmount('');
+                setCategory('');
+            };
+            
+            // Hapus transaksi
+            const deleteTransaction = (id) => {
+                setTransactions(transactions.filter(transaction => transaction.id !== id));
+            };
+            
+            return (
+                <div className="container">
+                    <header>
+                        <h1>Expense Tracker Modern</h1>
+                        <p>Kelola keuangan Anda dengan mudah dan efisien</p>
+                    </header>
+                    
+                    <div className="app-container">
+                        <div className="left-panel">
+                            <div className="balance-container">
+                                <div className="balance-label">Saldo Anda</div>
+                                <div className={`balance-amount ${balance >= 0 ? 'positive' : 'negative'}`}>
+                                    {formatRupiah(balance)}
+                                </div>
+                                
+                                <div className="summary">
+                                    <div className="summary-item income-summary">
+                                        <div className="summary-title">Pemasukan</div>
+                                        <div className="summary-amount">{formatRupiah(income)}</div>
+                                    </div>
+                                    
+                                    <div className="summary-item expense-summary">
+                                        <div className="summary-title">Pengeluaran</div>
+                                        <div className="summary-amount">{formatRupiah(expenses)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="form-container">
+                                <h3>Tambah Transaksi Baru</h3>
+                                
+                                <form onSubmit={addTransaction}>
+                                    <div className="radio-group">
+                                        <div 
+                                            className={`radio-option ${type === 'income' ? 'selected' : ''}`}
+                                            onClick={() => setType('income')}
+                                        >
+                                            <i className="fas fa-money-bill-wave"></i>
+                                            <span>Pemasukan</span>
+                                        </div>
+                                        
+                                        <div 
+                                            className={`radio-option ${type === 'expense' ? 'selected' : ''}`}
+                                            onClick={() => setType('expense')}
+                                        >
+                                            <i className="fas fa-shopping-cart"></i>
+                                            <span>Pengeluaran</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label htmlFor="name">Keterangan</label>
+                                        <input
+                                            type="text"
+                                            id="name"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            placeholder="Contoh: Gaji Bulanan"
+                                        />
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label htmlFor="amount">Jumlah (Rp)</label>
+                                        <input
+                                            type="number"
+                                            id="amount"
+                                            value={amount}
+                                            onChange={(e) => setAmount(e.target.value)}
+                                            placeholder="Contoh: 500000"
+                                        />
+                                    </div>
+                                    
+                                    <div className="form-group">
+                                        <label htmlFor="category">Kategori</label>
+                                        <select
+                                            id="category"
+                                            value={category}
+                                            onChange={(e) => setCategory(e.target.value)}
+                                        >
+                                            <option value="">Pilih Kategori</option>
+                                            {(type === 'income' ? incomeCategories : expenseCategories).map(cat => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    <button type="submit">
+                                        <i className="fas fa-plus"></i> Tambah Transaksi
+                                    </button>
+                                </form>
+                            </div>
+                            
+                            <div className="chart-container">
+                                <h3>Analisis Pengeluaran</h3>
+                                <p>Total pengeluaran: {expensePercentage}% dari pemasukan</p>
+                                
+                                <div className="chart">
+                                    {Object.keys(categoryData).map(category => (
+                                        <div key={category} className="chart-item">
+                                            <div 
+                                                className="chart-bar" 
+                                                style={{ height: `${Math.min(100, (categoryData[category] / expenses) * 200)}px` }}
+                                            ></div>
+                                            <div className="chart-label">{category}</div>
+                                            <div className="chart-label">{formatRupiah(categoryData[category])}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div className="right-panel">
+                            <h2>Riwayat Transaksi</h2>
+                            
+                            {loading ? (
+                                <div className="loading">
+                                    <div className="spinner"></div>
+                                    <p>Memuat data transaksi...</p>
+                                </div>
+                            ) : transactions.length === 0 ? (
+                                <div className="no-transactions">
+                                    <i className="fas fa-receipt" style={{fontSize: '3rem', marginBottom: '15px', color: '#ced4da'}}></i>
+                                    <p>Belum ada transaksi</p>
+                                    <p style={{fontSize: '0.9rem', marginTop: '10px'}}>Tambahkan transaksi pertama Anda</p>
+                                </div>
+                            ) : (
+                                <div className="transaction-list">
+                                    {transactions.map(transaction => (
+                                        <div 
+                                            key={transaction.id} 
+                                            className={`transaction-item ${transaction.type === 'income' ? 'transaction-income' : 'transaction-expense'}`}
+                                        >
+                                            <div className="transaction-details">
+                                                <div className="transaction-name">{transaction.name}</div>
+                                                <span className="transaction-category">{transaction.category}</span>
+                                                <div className="transaction-date">{transaction.date}</div>
+                                            </div>
+                                            <div style={{display: 'flex', alignItems: 'center'}}>
+                                                <div className={transaction.type === 'income' ? 'income' : 'expense'}>
+                                                    {transaction.type === 'income' ? '+' : '-'} {formatRupiah(transaction.amount)}
+                                                </div>
+                                                <div className="transaction-actions">
+                                                    <button 
+                                                        className="delete-btn"
+                                                        onClick={() => deleteTransaction(transaction.id)}
+                                                        title="Hapus transaksi"
+                                                    >
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )).reverse()}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ExpenseTracker />);
+
+        // Hamburger menu functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const hamburger = document.querySelector('.hamburger');
+            const navMenu = document.querySelector('.navbar-nav');
+            
+            hamburger.addEventListener('click', function() {
+                hamburger.classList.toggle('active');
+                navMenu.classList.toggle('active');
+            });
+            
+            // Close menu when clicking on a link
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                });
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!hamburger.contains(event.target) && !navMenu.contains(event.target)) {
+                    hamburger.classList.remove('active');
+                    navMenu.classList.remove('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
